@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Axway AI AIOps — Architecture Docs</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3250;
+      --accent: #4f8ef7;
+      --accent2: #7c5cbf;
+      --text: #e2e8f0;
+      --text-muted: #8892a4;
+      --text-dim: #4a5568;
+      --green: #48bb78;
+      --amber: #f6ad55;
+      --red: #fc8181;
+      --sidebar-w: 260px;
+      --header-h: 56px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      height: var(--header-h);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .logo {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .header-title { font-size: 15px; font-weight: 600; }
+    .header-sub { font-size: 12px; color: var(--text-muted); margin-left: 2px; }
+    .header-badge {
+      margin-left: auto;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .sidebar-section {
+      padding: 14px 12px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      margin: 1px 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: rgba(79,142,247,0.15); color: var(--accent); }
+    .nav-icon { font-size: 15px; flex-shrink: 0; }
+    .nav-badge {
+      margin-left: auto;
+      font-size: 10px;
+      background: var(--surface2);
+      padding: 1px 7px;
+      border-radius: 10px;
+      color: var(--text-dim);
+    }
+    .nav-item.active .nav-badge { background: rgba(79,142,247,0.2); color: var(--accent); }
+
+    .toc-panel {
+      flex: 1;
+      overflow-y: auto;
+      padding: 6px 0 12px;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+    }
+    .toc-panel::-webkit-scrollbar { width: 4px; }
+    .toc-panel::-webkit-scrollbar-track { background: transparent; }
+    .toc-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .toc-heading { padding: 10px 14px 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-dim); }
+    .toc-item {
+      display: block;
+      padding: 5px 14px 5px 20px;
+      font-size: 12px;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.1s;
+    }
+    .toc-item:hover { color: var(--text); }
+    .toc-item.h3 { padding-left: 30px; font-size: 11px; color: var(--text-dim); }
+    .toc-item.h3:hover { color: var(--text-muted); }
+
+    /* ── Content ── */
+    main {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .doc-tab-bar {
+      display: flex;
+      gap: 2px;
+      padding: 8px 20px 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .doc-tab {
+      padding: 7px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      border-bottom: none;
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .doc-tab:hover { color: var(--text); background: var(--surface2); }
+    .doc-tab.active {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--border);
+      border-bottom-color: var(--bg);
+      position: relative;
+      bottom: -1px;
+    }
+    .tab-dot { width: 7px; height: 7px; border-radius: 50%; }
+    .tab-dot.green { background: var(--green); }
+    .tab-dot.blue { background: var(--accent); }
+    .tab-dot.purple { background: var(--accent2); }
+
+    .doc-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px 48px 80px;
+      display: none;
+    }
+    .doc-content.active { display: block; }
+    .doc-content::-webkit-scrollbar { width: 6px; }
+    .doc-content::-webkit-scrollbar-track { background: transparent; }
+    .doc-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Markdown styles ── */
+    .md h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; color: var(--text); line-height: 1.3; }
+    .md h2 { font-size: 20px; font-weight: 600; margin: 40px 0 14px; color: var(--text); padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .md h3 { font-size: 16px; font-weight: 600; margin: 28px 0 10px; color: var(--text); }
+    .md h4 { font-size: 14px; font-weight: 600; margin: 20px 0 8px; color: var(--text-muted); }
+    .md p { font-size: 14px; line-height: 1.75; color: var(--text); margin: 0 0 14px; }
+    .md a { color: var(--accent); text-decoration: none; }
+    .md a:hover { text-decoration: underline; }
+    .md strong { color: var(--text); font-weight: 600; }
+    .md em { color: var(--text-muted); font-style: italic; }
+    .md hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+    .md ul, .md ol { margin: 0 0 14px 22px; }
+    .md li { font-size: 14px; line-height: 1.75; color: var(--text); margin-bottom: 4px; }
+    .md li ul, .md li ol { margin-bottom: 4px; margin-top: 4px; }
+
+    .md code {
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12.5px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 4px;
+      color: #e879f9;
+    }
+    .md pre {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0 20px;
+      position: relative;
+    }
+    .md pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: 12.5px;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .md pre::-webkit-scrollbar { height: 4px; }
+    .md pre::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .md table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 20px;
+      font-size: 13px;
+    }
+    .md th {
+      background: var(--surface2);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .md td {
+      padding: 9px 14px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .md tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    .md blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 10px 16px;
+      margin: 16px 0;
+      background: rgba(79,142,247,0.06);
+      border-radius: 0 6px 6px 0;
+    }
+    .md blockquote p { color: var(--text-muted); margin: 0; }
+
+    /* doc header strip */
+    .doc-header {
+      background: linear-gradient(135deg, rgba(79,142,247,0.08), rgba(124,92,191,0.08));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .doc-icon { font-size: 28px; }
+    .doc-header-text h1 { font-size: 22px; margin-bottom: 4px; }
+    .doc-header-text p { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+    .doc-meta { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .doc-tag {
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .doc-tag.green { border-color: rgba(72,187,120,0.4); color: var(--green); background: rgba(72,187,120,0.08); }
+    .doc-tag.blue { border-color: rgba(79,142,247,0.4); color: var(--accent); background: rgba(79,142,247,0.08); }
+    .doc-tag.purple { border-color: rgba(124,92,191,0.4); color: var(--accent2); background: rgba(124,92,191,0.08); }
+
+    /* search bar */
+    .search-bar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .search-bar input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: var(--text);
+      outline: none;
+    }
+    .search-bar input::placeholder { color: var(--text-dim); }
+    .search-bar input:focus { border-color: var(--accent); }
+
+    /* hidden source textareas */
+    .md-source { display: none; }
+  </style>
+</head>
+<body>
+
+<!-- ── Hidden Markdown Sources ── -->
+<textarea id="src-simple" class="md-source">
+# Axway SecureTransport — AI Incident Management Platform
+## Simplified Design
+
+---
+
+## What This System Does
+
+Monitors your Axway SecureTransport environment continuously, spots problems before clients report them, diagnoses the root cause automatically, and either fixes it or tells your team exactly what to do.
+
+---
+
+## System Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│              AXWAY SECURE TRANSPORT                      │
+│  Logs  │  Admin API  │  Transfer DB  │  Metrics          │
+└──────────────────────┬──────────────────────────────────┘
+                       │ poll every 60s
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│                  COLLECTOR SERVICE                        │
+│  Reads Axway logs + API, normalizes events               │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────┐
+│                  AI AGENT (3 modes)                      │
+│                                                          │
+│  [PROACTIVE]  Scans health every 15 min                  │
+│    - cert expiry check                                   │
+│    - SSH key validity                                    │
+│    - transfer failure rate trending up?                  │
+│    - partner last-seen > expected interval?              │
+│                                                          │
+│  [REACTIVE]   Triggered by failure event                 │
+│    - calls Azure OpenAI with log context                 │
+│    - produces root cause + recommended fix               │
+│                                                          │
+│  [CHAT]       Engineer asks questions                    │
+│    - "why is partner X failing?"                         │
+│    - "show me all certs expiring this month"             │
+└──────────────────────┬──────────────────────────────────┘
+                       │
+              ┌────────┴─────────┐
+              ▼                  ▼
+┌─────────────────────┐  ┌───────────────────────────┐
+│  NOTIFICATION       │  │  AUTO-FIX (optional)       │
+│  Slack / Teams /    │  │  retry transfer            │
+│  Email / ServiceNow │  │  clear stuck queue         │
+└─────────────────────┘  │  schedule cert renewal     │
+                         └───────────────────────────┘
+```
+
+---
+
+## The Three Core Components
+
+### 1. Collector Service
+A lightweight Python service that runs on-prem (or close to Axway):
+
+```
+What it collects (every 60 seconds):
+  ✓ Failed transfers in last 60s  → via Axway Admin API
+  ✓ New log lines                 → tail Axway log files
+  ✓ Current service status        → Admin API /services
+  ✓ Cert expiry dates             → Admin API /certs
+  ✓ Transfer queue depths         → Admin API /queues
+
+What it stores:
+  → PostgreSQL: normalized events, incident history
+  → Redis: rate counters, dedup cache (5-min window)
+```
+
+### 2. AI Agent (Azure OpenAI GPT-4o)
+
+Three operating modes, all using the same Azure OpenAI endpoint:
+
+**Mode A — Proactive Health Check (every 15 min)**
+```python
+checks = [
+    check_cert_expiry(),         # any cert expiring in < 30 days?
+    check_transfer_failure_rate(),# failure rate > baseline by 20%?
+    check_partner_silence(),      # partner hasn't sent a file when expected?
+    check_ssh_keys(),             # any keys older than 1 year or weak algo?
+    check_queue_depth(),          # any queue growing without draining?
+    check_disk_space(),           # Axway data partition > 80%?
+    check_jvm_heap(),             # JVM heap > 85%?
+]
+# Any check triggers an alert with AI-generated context
+```
+
+**Mode B — Reactive Incident Analysis (on failure event)**
+```
+Trigger: ≥3 failed transfers for same partner in 5 min
+         OR any P1/P2 alert from monitoring
+
+Steps:
+1. Fetch last 50 log lines for that partner/protocol
+2. Send to GPT-4o with Axway-expert system prompt
+3. Get back: root cause, confidence, fix steps
+4. Post to Slack/Teams immediately
+5. Create ServiceNow ticket (optional)
+6. Execute safe auto-fixes if confidence > 85%
+```
+
+**Mode C — Chat Interface (Slack bot / Teams bot)**
+```
+Engineer: "@axway-bot why is ACME failing?"
+Bot: fetches live data → calls GPT-4o → responds in < 10s
+
+Engineer: "@axway-bot list certs expiring in June"
+Bot: queries cert inventory → formats answer (no LLM needed)
+
+Engineer: "@axway-bot run diagnostics on partner GLOBALCO"
+Bot: runs full check → LLM summarizes findings
+```
+
+### 3. Action Layer
+
+**Safe auto-fixes (no approval needed):**
+- Retry a failed transfer
+- Clear a stuck queue
+- Send partner notification email
+- Create ServiceNow / Jira ticket
+
+**Fixes requiring Slack approval (one-click):**
+- Update SSH known_hosts with new key fingerprint
+- Restart Axway listener service
+- Import renewed certificate
+
+**Fixes that always need a human:**
+- Partner configuration changes
+- CA certificate changes
+- Firewall/network changes
+
+---
+
+## What Gets Detected Proactively
+
+| Check | Frequency | Alert Lead Time |
+|---|---|---|
+| SSL cert expiry | Every 15 min | 30 / 15 / 7 / 1 day warning |
+| SSH key weak algorithm (RSA < 2048, DSA) | Daily | Immediate flag |
+| SSH key rotation (partner changed key) | Every 5 min | Same minute |
+| Transfer failure rate spike | Every 5 min | Minutes before SLA breach |
+| Partner silence (no transfer when expected) | Every 15 min | Before client notices |
+| Axway disk usage > 80% | Every 15 min | Hours before service impact |
+| JVM heap > 85% | Every 5 min | Before OOM crash |
+| AS2 MDN not received | Every 5 min | Within 10 min of MDN timeout |
+| Cipher suite incompatibility | On failure | Immediate |
+| Transfer queue growing | Every 5 min | Before backlog causes SLA miss |
+
+---
+
+## Azure OpenAI Integration
+
+**Models used:**
+- `gpt-4o` — incident analysis, root cause reasoning, chat
+- `gpt-4o-mini` — cert expiry summaries, simple classification, high-volume event tagging
+
+**System prompt for incident analysis:**
+```
+You are an expert Axway SecureTransport MFT operations engineer.
+You diagnose file transfer incidents involving SFTP (RSA/ECDSA keys),
+AS2, HTTPS/SSL certificates, and FTPS.
+
+When given log excerpts and partner context, you:
+1. Identify the root cause (be specific — cite the log line)
+2. Rate your confidence (0–100%)
+3. List the exact fix steps in order
+4. Flag any safety concerns with the fix
+5. Estimate time to fix
+
+Always respond in JSON. Never suggest destructive actions.
+If unsure, say so and recommend human review.
+```
+
+**Example call:**
+```python
+response = await openai_client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": AXWAY_EXPERT_SYSTEM_PROMPT},
+        {"role": "user", "content": f"""
+Partner: {partner_name} ({partner_id})
+Protocol: SFTP
+Failure count: {failure_count} in last 5 minutes
+Last success: {last_success}
+
+Recent log lines:
+{log_excerpt}
+
+Partner config:
+{partner_config_summary}
+
+Diagnose this incident and provide fix steps.
+        """}
+    ],
+    response_format={"type": "json_object"},
+    temperature=0.1  # low temperature for consistent, factual output
+)
+```
+
+---
+
+## Data Flow for a Typical Incident
+
+```
+12:01:00  Partner ACME starts failing SFTP transfers
+12:01:00  Collector detects 1st failure via Axway API
+12:03:00  3rd failure in 5 min → threshold crossed
+12:03:05  Collector fetches last 50 ACME log lines
+12:03:06  GPT-4o called with log context
+12:03:09  Response: "SSH host key changed. Old: SHA256:abc, New: SHA256:xyz.
+           Confidence: 94%. Fix: update known_hosts in Axway partner config."
+12:03:10  Slack message posted to #mft-alerts:
+           "🔴 ACME SFTP failing (3 failures, 5 min)
+            Root cause: SSH host key changed
+            Fix: Update known_hosts [✅ Auto-fix] [📋 View Details]"
+12:04:30  Engineer clicks ✅ Auto-fix
+12:04:35  Axway Admin API: known_hosts updated
+12:04:40  Synthetic SFTP test → success
+12:04:41  Slack: "✅ Fixed. ACME SFTP restored. Validation passed."
+Total time: 3 min 41 sec
+```
+
+---
+
+## Tech Stack (Simple)
+
+| Component | Technology | Why |
+|---|---|---|
+| Language | Python 3.12 | Best AI/LLM ecosystem |
+| LLM | Azure OpenAI (GPT-4o + GPT-4o-mini) | Your existing MS contract |
+| AI framework | LangChain (minimal) | Simple chain + tool calling |
+| Scheduler | APScheduler | Built-in Python, no extra infra |
+| Database | PostgreSQL | Incidents, cert inventory, history |
+| Cache | Redis | Dedup, rate counters, session |
+| API | FastAPI | REST API + webhook receiver |
+| Slack bot | Slack Bolt SDK | Interactive approvals |
+| Teams bot | Bot Framework SDK | If Teams preferred |
+| Deployment | Docker Compose (start) → K8s (scale) | Start simple |
+| Monitoring | Grafana + Prometheus (optional) | Basic dashboards |
+
+---
+
+## Project Structure
+
+```
+axway-incident-ai-agent/
+├── collector/
+│   ├── axway_client.py      # Axway Admin API wrapper
+│   ├── log_tailer.py        # Tail Axway log files
+│   ├── normalizer.py        # Raw events → NormalizedEvent
+│   └── scheduler.py         # APScheduler jobs
+│
+├── agent/
+│   ├── proactive.py         # Health check agent (15-min loop)
+│   ├── reactive.py          # Incident analysis agent (on-event)
+│   ├── chat.py              # Conversational interface
+│   └── prompts.py           # All system prompts
+│
+├── llm/
+│   ├── client.py            # Azure OpenAI client wrapper
+│   └── schemas.py           # Pydantic output schemas for LLM responses
+│
+├── actions/
+│   ├── safe_actions.py      # Auto-executable fixes
+│   ├── approval_actions.py  # Slack-approval-required fixes
+│   └── axway_actions.py     # Axway API mutating calls
+│
+├── notifications/
+│   ├── slack.py             # Slack alerts + interactive messages
+│   ├── teams.py             # Teams alerts
+│   └── servicenow.py        # Ticket creation
+│
+├── checks/
+│   ├── cert_expiry.py
+│   ├── transfer_failures.py
+│   ├── partner_silence.py
+│   ├── ssh_keys.py
+│   ├── queue_depth.py
+│   └── jvm_health.py
+│
+├── models/
+│   └── incident.py          # SQLAlchemy models
+│
+├── api/
+│   └── main.py              # FastAPI: webhooks, chat endpoint
+│
+├── config/
+│   └── settings.py          # Pydantic Settings (env-based)
+│
+├── docker-compose.yml
+└── .env.example
+```
+
+---
+
+## Configuration (.env)
+
+```bash
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com
+AZURE_OPENAI_API_KEY=your-key
+AZURE_OPENAI_DEPLOYMENT_GPT4O=gpt-4o
+AZURE_OPENAI_DEPLOYMENT_MINI=gpt-4o-mini
+AZURE_OPENAI_API_VERSION=2024-12-01-preview
+
+# Axway SecureTransport
+AXWAY_ADMIN_URL=https://axway-host:444
+AXWAY_ADMIN_USER=admin
+AXWAY_ADMIN_PASSWORD=secret
+AXWAY_LOG_PATH=/opt/axway/SecureTransport/var/log
+
+# Database
+DATABASE_URL=postgresql://aiops:secret@localhost:5432/axway_aiops
+REDIS_URL=redis://localhost:6379
+
+# Notifications
+SLACK_BOT_TOKEN=xoxb-...
+SLACK_ALERT_CHANNEL=#mft-alerts
+SLACK_APPROVAL_CHANNEL=#mft-ops
+
+# Thresholds
+CERT_EXPIRY_WARN_DAYS=30
+FAILURE_RATE_THRESHOLD=3
+QUEUE_DEPTH_WARN=1000
+JVM_HEAP_WARN_PCT=85
+DISK_WARN_PCT=80
+AUTO_FIX_CONFIDENCE_THRESHOLD=85
+```
+
+---
+
+## Implementation Phases
+
+### Phase 1 — See Everything (Week 1–2)
+- Axway API collector running
+- Cert expiry check with Slack alerts
+- Transfer failure rate alerts
+- Basic dashboard (how many failures, by partner, by protocol)
+
+### Phase 2 — Understand Why (Week 3–4)
+- Reactive incident analysis with GPT-4o
+- Root cause posted to Slack with fix steps
+- ServiceNow ticket auto-creation
+- Incident history in PostgreSQL
+
+### Phase 3 — Fix Automatically (Week 5–6)
+- Safe auto-fixes: transfer retry, queue clear
+- Approval-gated fixes: known_hosts update, service restart
+- Synthetic test validation after each fix
+- Rollback on failed validation
+
+### Phase 4 — Predict & Prevent (Week 7–8)
+- Partner silence detection (SLA-aware schedule)
+- Transfer throughput trend analysis
+- Chat interface: "@axway-bot diagnose partner X"
+- Weekly health report auto-generated by GPT-4o
+
+---
+
+## Incident Output Format (GPT-4o response schema)
+
+```json
+{
+  "root_cause": "SSH host key fingerprint mismatch — partner rotated their RSA key",
+  "evidence": "sshd.log 12:01:33 — 'Host key verification failed' for ACME@sftp.acme.com",
+  "confidence": 94,
+  "severity": "P2",
+  "fix_steps": [
+    "Run: ssh-keyscan -t rsa sftp.acme.com to get new fingerprint",
+    "Update Axway partner ACME known_hosts via Admin API",
+    "Run synthetic SFTP test to validate"
+  ],
+  "auto_fixable": true,
+  "auto_fix_action": "UPDATE_KNOWN_HOSTS",
+  "estimated_fix_minutes": 3,
+  "safety_notes": "Low risk — reverting is trivial if wrong key captured",
+  "escalate_if": "Fix fails after 2 attempts — may indicate partner IP change or firewall block"
+}
+```
+
+---
+
+## Estimated Infrastructure Cost
+
+| Item | Monthly Cost |
+|---|---|
+| Azure OpenAI GPT-4o (500 incidents/month) | ~$50–150 |
+| GPT-4o-mini (proactive checks, tagging) | ~$10–30 |
+| 2× small VMs (collector + agent) | ~$100–200 |
+| PostgreSQL (managed) | ~$50–100 |
+| Redis (managed) | ~$30–60 |
+| **Total** | **~$240–540/month** |
+
+Compare to: 1 engineer-hour of incident work ≈ $100–150 at loaded cost. Saving 10 hours/month pays for the whole platform.
+</textarea>
+
+<textarea id="src-enterprise" class="md-source">
+# Axway SecureTransport AI AIOps Platform — Enterprise Architecture Blueprint
+
+**Version:** 1.0
+**Date:** 2026-05-21
+**Classification:** Internal Architecture Document
+
+---
+
+## 1. Executive Summary
+
+This document defines the architecture for an AI-native AIOps platform purpose-built for Axway SecureTransport Managed File Transfer (MFT) operations. The platform mirrors the capability philosophy of Nova AIOps — continuous telemetry ingestion, multi-agent AI reasoning, autonomous remediation, and conversational operations intelligence — adapted to the specific failure modes, protocols, and operational patterns of enterprise MFT.
+
+**Target outcomes:**
+- MTTR reduction: 70–85% for known incident patterns
+- Autonomous resolution rate: 40–60% of P3/P4 incidents in Phase 1, scaling to 70%+ in Phase 2
+- Proactive detection: certificate expiry, key rotation, SLA breach prediction with 7–30 day lead time
+- Engineer productivity: 3–5x increase in incidents handled per engineer per shift
+- Audit readiness: continuous, automated compliance evidence generation
+
+---
+
+## 2. Functional Requirements
+
+### 2.1 Incident Management
+- FR-01: Ingest alerts from Axway logs, Splunk, ELK, Datadog, Prometheus, PagerDuty, email, and ticketing systems in real time
+- FR-02: Correlate related alerts into a single incident within a configurable time window (default 5 min)
+- FR-03: Classify incidents by protocol (SFTP, AS2, HTTPS/SSL, FTPS), failure type, and impacted partner
+- FR-04: Assign severity (P1–P4) based on partner SLA tier, transfer volume, and failure pattern
+- FR-05: Deduplicate incidents using fingerprinting (protocol + partner + failure code + time window)
+- FR-06: Enrich incidents with partner profile, SLA commitment, historical failure rate, and contact info
+- FR-07: Surface probable root cause with confidence score ≥ 0.75 for known patterns
+- FR-08: Generate human-readable incident summary in ≤ 60 seconds of alert receipt
+
+### 2.2 Root Cause Analysis
+- FR-09: Parse and correlate Axway transfer logs, SSH/SFTP debug logs, TLS handshake logs, AS2 logs, JVM logs, and OS-level logs
+- FR-10: Identify SFTP failures: key type mismatch, unsupported algorithm, host key changed, wrong key loaded, exhausted retries
+- FR-11: Identify TLS/SSL failures: expired cert, wrong SAN, chain incomplete, cipher suite mismatch, protocol version mismatch
+- FR-12: Identify AS2 failures: MDN timeout, MDN signature mismatch, disposition-notification-options mismatch, encryption failure
+- FR-13: Identify network failures: DNS resolution, firewall block, TCP timeout, MTU issue
+- FR-14: Identify Axway internal failures: mailbox routing error, adapter crash, queue overflow, disk full, JVM OOM
+
+### 2.3 Autonomous Remediation
+- FR-17: Execute approved remediations against Axway Admin API, OS, and partner systems without human intervention for P3/P4
+- FR-18: Support human-in-the-loop approval for P1/P2 remediations with Slack/Teams workflow
+- FR-19: Implement rollback capability for all mutating actions within 15 minutes
+- FR-20: Log every remediation action with actor (agent), timestamp, parameters, outcome, and rollback state
+
+### 2.4 Knowledge & Conversational AI
+- FR-26: Ingest and index runbooks, SOPs, Axway documentation, historical tickets, architecture diagrams, partner onboarding docs
+- FR-27: Support natural language queries from engineers via Slack, Teams, or web UI
+- FR-28: Generate step-by-step troubleshooting guidance grounded in retrieved context
+
+### 2.5 Predictive Analytics
+- FR-31: Predict SSL certificate expiry risk with 30/15/7/1 day alerts
+- FR-32: Detect transfer throughput degradation trends ≥ 3 days before SLA breach
+- FR-33: Identify partners with rising failure rates indicating key/cert/config drift
+- FR-34: Detect Axway resource exhaustion (disk, JVM heap, connection pool) before service impact
+
+### 2.6 Compliance & Audit
+- FR-36: Maintain immutable audit log of all agent decisions and actions
+- FR-37: Generate on-demand compliance reports: cipher suite inventory, cert expiry status, key algorithm inventory
+- FR-38: Detect use of deprecated algorithms (MD5, SHA-1, RSA-1024, DES, RC4)
+
+---
+
+## 3. Non-Functional Requirements
+
+| Category | Requirement |
+|---|---|
+| Availability | 99.9% platform uptime; agent services independently HA |
+| Latency | Alert-to-triage ≤ 60s; RCA generation ≤ 120s for known patterns |
+| Throughput | Ingest ≥ 50,000 log events/sec; process ≥ 500 incidents/hour |
+| Scalability | Horizontal scale for all stateless components; Kafka partitioning for event streams |
+| Security | Zero-trust network policy; all secrets in Vault/CyberArk; mTLS between services |
+| Auditability | Every LLM call logged with prompt, response, model version, timestamp |
+| RTO/RPO | RTO ≤ 4h; RPO ≤ 1h for knowledge base; RPO ≤ 15min for incident state |
+| Compliance | SOC 2 Type II, ISO 27001, PCI-DSS compatible audit controls |
+
+---
+
+## 4. End-to-End Architecture
+
+### 4.1 Architectural Layers
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      PRESENTATION LAYER                          │
+│  Web UI (React)  │  Slack Bot  │  Teams Bot  │  REST API  │  CLI │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────┐
+│                     ORCHESTRATION LAYER                          │
+│    Agent Coordinator (LangGraph)  │  Policy Engine (OPA)        │
+│    Workflow Engine (Temporal)     │  Human Approval Gateway      │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────┐
+│                       AI AGENT LAYER                             │
+│  Triage │ RCA │ Remediation │ Knowledge │ Predictive │ Compliance│
+└───────┬─────────────┬────────────┬────────────┬────────────┬────┘
+        │             │            │            │            │
+  LLM Gateway    RAG Layer     Tools       Memory       ML Models
+  (multi-model)  (Vector+Graph) Layer      (Redis)      (anomaly)
+                              │
+┌─────────────────────────────▼───────────────────────────────────┐
+│                    EVENT PROCESSING LAYER                        │
+│  Kafka (event bus)  │  Flink (stream processing)                 │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────┐
+│                      INTEGRATION LAYER                           │
+│  Axway ST │ Splunk │ ELK │ Datadog │ ServiceNow │ PagerDuty     │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────────┐
+│                  DATA SOURCES (AXWAY + INFRA)                    │
+│  Axway Logs │ Transfer DB │ SSH Logs │ AS2 Logs │ JVM Metrics   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Core Design Principles
+
+1. **Event-driven, not polling** — All telemetry flows via Kafka topics; agents are triggered by events, not cron
+2. **Separation of reasoning from execution** — Agents reason; Tools execute; Policy Engine gates execution
+3. **Grounded generation** — Every LLM output that drives action must cite retrieved context or tool output
+4. **Immutable audit** — Every decision, tool call, and LLM interaction written to append-only audit store
+5. **Graceful degradation** — If LLM unavailable, fall back to rule-based triage
+6. **Human-in-the-loop by default for P1/P2** — Autonomous execution requires explicit policy unlock
+
+---
+
+## 5. AI Agent Architecture
+
+### 5.1 Agent Design Pattern
+
+Each agent follows the ReAct (Reason + Act) pattern:
+
+```
+INPUT EVENT
+    │
+    ▼
+[OBSERVE] → Gather context from tools + memory
+    │
+    ▼
+[RETRIEVE] → RAG lookup: similar incidents, runbooks
+    │
+    ▼
+[REASON] → LLM reasoning over context + retrieved docs
+    │
+    ▼
+[POLICY CHECK] → OPA evaluates action against policy
+    │
+    ▼
+[ACT] → Execute tool call (Axway API, OS, etc.)
+    │
+    ▼
+[REFLECT] → Evaluate outcome; update memory
+    │
+    ▼
+[EMIT] → Publish result event to Kafka
+```
+
+### 5.2 Agent 1: Incident Triage Agent
+
+**Purpose:** First responder. Converts raw alert signals into structured, enriched incidents.
+
+**Processing steps:**
+1. **Normalization** — Map all alert formats to canonical AlertEvent schema
+2. **Deduplication** — Redis-based fingerprint cache (protocol + partner_id + error_code + 5min window)
+3. **Correlation** — Sliding window grouping: alerts from same partner within 5 min → single incident
+4. **Enrichment** — Partner profile lookup, SLA tier, last 30-day failure rate
+5. **Classification** — LLM classifies incident category
+6. **Severity assignment** — Rule engine (P1: production partner, > 10 failures/min)
+
+**Output schema:**
+```json
+{
+  "incident_id": "INC-20260521-004421",
+  "category": "SFTP_KEY",
+  "severity": "P2",
+  "partner_id": "PARTNER-ABC",
+  "partner_name": "Acme Corp",
+  "sla_tier": "GOLD",
+  "probable_cause": "SSH RSA key fingerprint mismatch",
+  "confidence": 0.91,
+  "alert_count": 14,
+  "impacted_transfers": 47
+}
+```
+
+### 5.3 Agent 2: Root Cause Analysis Agent
+
+**RCA reasoning chain:**
+
+```
+Step 1: TIME ANCHORING
+  → Identify first failure timestamp
+  → Build ±10 min event window across all log sources
+
+Step 2: PROTOCOL TRACE
+  For SFTP: TCP connect → SSH version exchange → KEX → host key → user auth
+  For TLS:  ClientHello → ServerHello → Certificate → CertificateVerify
+  For AS2:  HTTP POST → MDN generation → MDN receipt
+
+Step 3: PATTERN MATCHING
+  → Match failure signature to known failure library (vector search)
+  → Return top-3 matching historical incidents with resolution
+
+Step 4: CAUSAL CHAIN CONSTRUCTION
+  → LLM builds directed causal chain from evidence
+
+Step 5: CONTRIBUTING FACTOR ANALYSIS
+  → Recent change? Partner rotated keys? Cert near expiry?
+```
+
+### 5.4 Agent 3: Autonomous Remediation Agent
+
+**Remediation catalog:**
+
+| RCA Category | Action | Approval Required |
+|---|---|---|
+| SFTP_KEY_MISMATCH | update_known_hosts() | P1: Yes / P2-P4: No |
+| TLS_CERT_EXPIRED | renew_certificate() | P1/P2: Yes / P3-P4: No |
+| AS2_MDN_TIMEOUT | retry_as2_transfer() | No |
+| QUEUE_STUCK | clear_transfer_queue() | No |
+| DISK_FULL | cleanup_expired_files() | No |
+| JVM_OOM | restart_axway_service() | P1: Yes / else: No |
+| TRANSFER_FAILED | retry_transfer() | No |
+
+### 5.5 Agent 4: Knowledge Agent
+
+**Purpose:** Conversational assistant providing RAG-grounded troubleshooting.
+
+**Knowledge sources:** Axway docs, runbooks, SOPs, historical tickets, partner onboarding docs, SSL/SSH inventories, RFC standards.
+
+### 5.6 Agent 5: Predictive Analytics Agent
+
+**Models:**
+- Certificate expiry predictor: rule-based, alerts at 30/15/7/1 days
+- Transfer throughput anomaly: Facebook Prophet, detects deviations > 2σ
+- Partner health scorer: logistic regression on failure_rate_7d, cert_days_remaining, key_age
+- SLA breach predictor: linear regression on queue depth + processing time trend
+
+### 5.7 Agent 6: Compliance & Audit Agent
+
+**Continuous checks:**
+- Flag any partner using TLS < 1.2, RC4, DES, MD5, SHA-1 MAC
+- Flag RSA < 2048-bit keys, DSA keys (deprecated)
+- Flag SHA-1 signed certificates
+- AS2 partners with unsigned MDNs
+
+---
+
+## 6. Event Processing Architecture
+
+### 6.1 Kafka Topic Design
+
+```
+INBOUND:
+  axway-aiops.raw.logs.transfer       # Axway transfer log events
+  axway-aiops.raw.logs.ssh            # SSH/SFTP daemon logs
+  axway-aiops.raw.logs.as2            # AS2 protocol logs
+  axway-aiops.raw.logs.tls            # TLS handshake logs
+  axway-aiops.raw.logs.jvm            # JVM/GC logs
+  axway-aiops.raw.alerts.monitoring   # Datadog/Prometheus/PagerDuty
+  axway-aiops.raw.alerts.siem         # Splunk/ELK alert forwards
+
+PROCESSING:
+  axway-aiops.incidents.structured    # After triage agent
+  axway-aiops.incidents.rca           # After RCA agent
+  axway-aiops.incidents.remediation   # Remediation decisions
+  axway-aiops.incidents.resolved      # Closed incidents
+  axway-aiops.audit.immutable         # Append-only audit (compacted)
+```
+
+### 6.2 Axway Log Parsing Patterns
+
+```python
+# Transfer Manager log pattern
+TM_TRANSFER_PATTERN = re.compile(
+    r'(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d+Z)\s+'
+    r'\[(?P<level>INFO|WARN|ERROR|DEBUG)\]\s+'
+    r'Transfer\s+(?P<transfer_id>\w+)\s+'
+    r'partner=(?P<partner_id>[\w-]+)\s+'
+    r'status=(?P<status>STARTED|COMPLETED|FAILED|RETRYING)\s+'
+    r'(?:error=(?P<error_code>\w+)\s+)?'
+)
+
+# SSH daemon auth failure pattern
+SSH_AUTH_FAILURE_PATTERN = re.compile(
+    r'sshd\[(?P<pid>\d+)\]:\s+'
+    r'(?P<event>Failed|Accepted|Invalid)\s+'
+    r'(?P<auth_method>publickey|password)\s+'
+    r'for\s+(?P<username>\S+)\s+'
+    r'from\s+(?P<src_ip>[\d.]+)'
+)
+
+# AS2 MDN pattern
+AS2_MDN_PATTERN = re.compile(
+    r'MessageID=(?P<message_id>[^\s]+)\s+'
+    r'Partner=(?P<partner_id>[^\s]+)\s+'
+    r'MDN-Status=(?P<mdn_status>processed|failed|pending)'
+)
+```
+
+---
+
+## 7. Security Architecture
+
+### 7.1 Zero Trust Network Model
+- mTLS enforced via Istio service mesh
+- Service identity via SPIFFE/SPIRE certificates
+- No lateral movement without explicit NetworkPolicy allow
+- All agent pods run with minimal Kubernetes RBAC
+
+### 7.2 Secret Management
+- Axway Admin API credentials: Vault dynamic secrets (rotated every 1h)
+- LLM API keys: Vault KV with envelope encryption
+- Partner keys/certs: Vault PKI secrets engine
+- No credentials in environment variables, ConfigMaps, or images
+
+### 7.3 LLM Security Controls
+
+| Risk | Control |
+|---|---|
+| Prompt injection via log content | Log content in structured JSON fields only |
+| Hallucinated remediation commands | Allow-list validation + schema enforcement |
+| Over-permissive autonomous actions | OPA policy engine as hard gate |
+| Partner data leakage | On-prem LLM for all log analysis |
+
+### 7.4 Guardrails
+
+```python
+class RemediationGuardrails:
+    NEVER_EXECUTE = [
+        "DROP TABLE", "DELETE FROM", "rm -rf /",
+        "iptables -F",
+        "axway_delete_partner",
+        "axway_delete_cert",
+    ]
+    REQUIRE_DUAL_APPROVAL = [
+        "restart_all_axway_services",
+        "rotate_ca_certificate",
+        "bulk_partner_config_update",
+    ]
+    MAX_BLAST_RADIUS = {
+        "partner_config_update": 1,
+        "service_restart": 1,
+        "cert_renewal": 5,
+        "transfer_retry": 50,
+    }
+```
+
+---
+
+## 8. Autonomous Remediation Flows
+
+### 8.1 Flow: SSH Host Key Mismatch (Full Trace)
+
+```
+TRIGGER: "Host key verification failed" × 14 in 5 min for partner ACME
+
+1. Triage Agent → SFTP_KEY_MISMATCH, P2, confidence=0.91
+
+2. RCA Agent
+   ← log_fetch(axway-prod-01, sshd.log, T-10min, now)
+   ← axway_get_partner_config(ACME)
+   ← ssh_keyscan(partner-sftp.acme.com, 22)
+   → known_hosts: SHA256:oldkey | live server: SHA256:newkey
+   → root cause: partner rotated key, ST not updated
+   → confidence: 0.94
+
+3. Policy Engine (OPA)
+   → P2 known_hosts update: ALLOW (no freeze, no maintenance window)
+
+4. Remediation Agent
+   → pre-state captured: {fingerprint: SHA256:oldkey}
+   → PUT /api/v1.4/partners/ACME/ssh/knownHosts
+   ← synthetic_sftp_test(ACME) → SUCCESS
+
+5. Audit + Slack
+   → "✓ INC-004421 auto-resolved. Validation PASSED. Time: 4 min."
+```
+
+### 8.2 Flow: SSL Certificate Expiry (Proactive)
+
+```
+TRIGGER: Predictive agent — cert expiring in 7 days
+
+1. Predictive Agent → CREATE_INCIDENT(CERT_EXPIRY_WARN, P2)
+2. RCA Agent → RENEW_CERTIFICATE(cert_id=CERT-4421, via=vault)
+3. Policy Engine → ALLOW (cert renewal auto-approved < 7 days)
+4. Remediation Agent:
+   → vault_pki_issue_cert(common_name=api.partner.com, ttl=8760h)
+   → axway_import_certificate(new_cert_pem, partner_id=PARTNER-XYZ)
+   → synthetic_https_test() → SUCCESS
+5. Slack: "✓ Certificate renewed. New expiry: 2027-05-21."
+```
+
+---
+
+## 9. RAG + Knowledge Architecture
+
+### 9.1 Vector Database (Qdrant)
+
+```
+Collections:
+  runbooks        → operational procedures
+  incidents       → historical incident + resolution pairs
+  axway_docs      → Axway product documentation
+  partner_docs    → partner onboarding/config docs
+  cert_inventory  → certificate metadata
+  key_inventory   → SSH key metadata
+```
+
+### 9.2 Hybrid Retrieval Strategy
+
+```python
+def retrieve(query: str, filters: Dict, top_k: int = 10) -> List[Chunk]:
+    # 1. Dense retrieval (semantic similarity via embeddings)
+    dense_results = qdrant.search(query_vector=embed(query), limit=top_k * 2)
+
+    # 2. Sparse retrieval (BM25 keyword match via Elasticsearch)
+    sparse_results = es.search(body={"query": {"match": {"content": query}}})
+
+    # 3. Reciprocal Rank Fusion
+    fused = rrf_merge(dense_results, sparse_results, k=60)
+
+    # 4. Cross-encoder reranking
+    return cross_encoder.rerank(query, fused[:20])[:top_k]
+```
+
+---
+
+## 10. LLM Strategy
+
+### 10.1 Model Routing
+
+| Task | Model | Rationale |
+|---|---|---|
+| Incident triage | GPT-4o-mini | Low latency, cost-efficient |
+| RCA reasoning | GPT-4o | Strong reasoning, large context |
+| P1/P2 remediation planning | GPT-4o | Highest accuracy for high-stakes |
+| Conversational Q&A | GPT-4o | Good balance quality/speed |
+| Document summarization | GPT-4o-mini | Bulk processing — cost matters |
+| Embeddings | text-embedding-3-large | Azure OpenAI native |
+
+### 10.2 Hallucination Prevention
+
+1. **Tool-grounded reasoning** — LLM requests tool calls to get facts; cannot assert partner-specific facts from training
+2. **Citation requirement** — Every RCA conclusion must cite a specific log line
+3. **Schema validation** — All LLM outputs validated against Pydantic schema
+4. **Confidence gating** — Confidence < 0.70 → human escalation (no autonomous action)
+
+---
+
+## 11. Multi-Agent Coordination (LangGraph)
+
+```python
+from langgraph.graph import StateGraph, END
+
+workflow = StateGraph(IncidentState)
+workflow.add_node("triage", triage_agent)
+workflow.add_node("rca", rca_agent)
+workflow.add_node("remediation", remediation_agent)
+workflow.add_node("human_review", human_approval_node)
+workflow.add_node("escalate", escalation_node)
+
+workflow.add_conditional_edges("triage", route_after_triage,
+    {"rca": "rca", "noise": END, "duplicate": END})
+
+workflow.add_conditional_edges("rca", route_after_rca,
+    {"auto_remediate": "remediation", "human_review": "human_review", "escalate": "escalate"})
+
+workflow.add_conditional_edges("remediation", route_after_remediation,
+    {"resolved": END, "failed": "escalate", "retry": "rca"})
+```
+
+---
+
+## 12. Recommended Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Agent Orchestration | LangGraph 0.2+ |
+| Long-running Workflows | Temporal.io |
+| LLM | Azure OpenAI (GPT-4o + GPT-4o-mini) |
+| Embeddings | text-embedding-3-large (Azure OpenAI) |
+| Vector Database | Qdrant (self-hosted) |
+| Graph Database | Neo4j |
+| Message Streaming | Apache Kafka |
+| Stream Processing | Apache Flink |
+| Policy Engine | Open Policy Agent (OPA) |
+| Secret Management | HashiCorp Vault |
+| Container Platform | Kubernetes |
+| Observability | Prometheus + Grafana + Jaeger + OTel |
+| Backend Services | Python 3.12 + FastAPI |
+| Frontend | React 19 + TypeScript |
+| Database | PostgreSQL 16 |
+| Cache | Redis 7 Cluster |
+
+---
+
+## 13. Implementation Roadmap
+
+### Phase 1 — Foundation (Months 1–3)
+- Axway Log Collector (Filebeat)
+- Flink log parser + normalizer
+- Triage Agent v1 (rule-based + LLM classification)
+- Knowledge Base v1 (runbooks, Axway docs, top-50 tickets)
+- ServiceNow integration
+- Grafana dashboards
+
+**KPIs:** 100% of incidents create structured record; 70% knowledge agent query resolution
+
+### Phase 2 — Intelligence (Months 4–6)
+- RCA Agent v1 (top 15 incident categories)
+- Remediation Agent v1 (key mismatch, retry, queue clear, disk cleanup)
+- OPA Policy Engine
+- Slack approval workflow for P1/P2
+- Predictive Agent v1 (cert expiry, partner health)
+
+**KPIs:** 40% autonomous resolution (P3/P4); MTTR −50%
+
+### Phase 3 — Autonomy (Months 7–9)
+- RCA Agent v2 (25+ categories, mature confidence scoring)
+- Remediation Agent v2 (cert renewal, key rotation, service restart)
+- Predictive Agent v2 (SLA breach, throughput anomaly)
+- Compliance Agent
+- Multi-region HA
+
+**KPIs:** 60% autonomous resolution; MTTR −75%; zero missed cert expirations
+
+### Phase 4 — Intelligence Amplification (Months 10–12)
+- Partner self-service portal
+- Capacity planning agent
+- Change impact prediction
+- SLA reporting automation
+
+**KPIs:** 70%+ autonomous resolution; partner onboarding time −60%
+
+---
+
+## 14. Risks and Mitigations
+
+| Risk | Probability | Impact | Mitigation |
+|---|---|---|---|
+| LLM hallucinated commands | Medium | Critical | Allow-list, schema enforcement, confidence gating |
+| Remediation loop | Low | High | 30-min cooldown, max 3 retries, circuit breaker |
+| False positive auto-fix | Medium | High | Confidence ≥ 0.85 for auto; P1/P2 always need approval |
+| LLM API unavailability | Medium | Medium | Circuit breaker, fallback to rule-based triage |
+| Prompt injection via logs | Medium | High | Structured JSON injection only, not raw log interpolation |
+
+---
+
+## 15. Cost Analysis
+
+| Scenario | Monthly Cost |
+|---|---|
+| LLM (500 incidents/day, GPT-4o-heavy) | ~$800–1,200 |
+| Infrastructure (K8s, managed DB, cache) | ~$2,000–4,000 |
+| **Total platform** | **~$3,000–5,000/month** |
+| **Engineer hours saved (60% auto-resolution)** | **~$45,000/month** |
+| **ROI** | **3–5× Year 1** |
+</textarea>
+
+<!-- ── HTML Structure ── -->
+<header>
+  <div class="logo">⚡</div>
+  <div>
+    <div class="header-title">Axway AI AIOps</div>
+    <div class="header-sub">Architecture Documentation</div>
+  </div>
+  <div class="header-badge">v1.0 · May 2026</div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside>
+    <div class="sidebar-section">Documents</div>
+    <div class="nav-item active" data-doc="simple" onclick="switchDoc('simple', this)">
+      <span class="nav-icon">🟢</span>
+      <span>Simple Design</span>
+      <span class="nav-badge">START</span>
+    </div>
+    <div class="nav-item" data-doc="enterprise" onclick="switchDoc('enterprise', this)">
+      <span class="nav-icon">🏛️</span>
+      <span>Enterprise Blueprint</span>
+      <span class="nav-badge">26 sec</span>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="toc-search" placeholder="Search headings…" oninput="filterToc(this.value)" />
+    </div>
+
+    <div class="toc-panel" id="toc-panel"></div>
+  </aside>
+
+  <!-- Main content -->
+  <main>
+    <div class="doc-tab-bar">
+      <div class="doc-tab active" id="tab-simple" onclick="switchDoc('simple', null)">
+        <span class="tab-dot green"></span> Simple Architecture
+      </div>
+      <div class="doc-tab" id="tab-enterprise" onclick="switchDoc('enterprise', null)">
+        <span class="tab-dot blue"></span> Enterprise Blueprint
+      </div>
+    </div>
+
+    <!-- Simple doc -->
+    <div class="doc-content active" id="doc-simple">
+      <div class="doc-header">
+        <div class="doc-icon">🚀</div>
+        <div class="doc-header-text">
+          <h1>Simple Architecture</h1>
+          <p>Proactive incident management for Axway SecureTransport using Azure OpenAI GPT-4o. Practical, buildable, and deployable in 8 weeks.</p>
+          <div class="doc-meta">
+            <span class="doc-tag green">Recommended Start</span>
+            <span class="doc-tag blue">Azure OpenAI</span>
+            <span class="doc-tag">Python 3.12</span>
+            <span class="doc-tag">Docker Compose</span>
+          </div>
+        </div>
+      </div>
+      <div class="md" id="render-simple"></div>
+    </div>
+
+    <!-- Enterprise doc -->
+    <div class="doc-content" id="doc-enterprise">
+      <div class="doc-header">
+        <div class="doc-icon">🏛️</div>
+        <div class="doc-header-text">
+          <h1>Enterprise Architecture Blueprint</h1>
+          <p>Full 26-section production-grade AIOps platform. Multi-agent, Kafka-driven, LangGraph-orchestrated with OPA policy engine and Temporal workflows.</p>
+          <div class="doc-meta">
+            <span class="doc-tag purple">Enterprise</span>
+            <span class="doc-tag blue">Azure OpenAI</span>
+            <span class="doc-tag">LangGraph</span>
+            <span class="doc-tag">Kafka + Flink</span>
+            <span class="doc-tag">Kubernetes</span>
+          </div>
+        </div>
+      </div>
+      <div class="md" id="render-enterprise"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ── Configure marked ──
+  marked.setOptions({
+    highlight: function(code, lang) {
+      if (lang && hljs.getLanguage(lang)) {
+        return hljs.highlight(code, { language: lang }).value;
+      }
+      return hljs.highlightAuto(code).value;
+    },
+    breaks: false,
+    gfm: true
+  });
+
+  // ── Render markdown ──
+  const docs = {
+    simple: { srcId: 'src-simple', renderId: 'render-simple', docId: 'doc-simple', tabId: 'tab-simple' },
+    enterprise: { srcId: 'src-enterprise', renderId: 'render-enterprise', docId: 'doc-enterprise', tabId: 'tab-enterprise' }
+  };
+
+  function renderDoc(key) {
+    const d = docs[key];
+    const src = document.getElementById(d.srcId).value;
+    const html = marked.parse(src);
+    document.getElementById(d.renderId).innerHTML = html;
+    // Add IDs to headings for ToC
+    document.getElementById(d.renderId).querySelectorAll('h2, h3').forEach(el => {
+      const id = el.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      el.id = id;
+    });
+  }
+
+  renderDoc('simple');
+  renderDoc('enterprise');
+
+  // ── Current active doc ──
+  let currentDoc = 'simple';
+
+  function switchDoc(key, navEl) {
+    currentDoc = key;
+    // Update nav items
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+    else document.querySelector(`.nav-item[data-doc="${key}"]`).classList.add('active');
+
+    // Update tabs
+    document.querySelectorAll('.doc-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + key).classList.add('active');
+
+    // Update content panels
+    document.querySelectorAll('.doc-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('doc-' + key).classList.add('active');
+
+    buildToc(key);
+    document.getElementById('toc-search').value = '';
+  }
+
+  // ── Table of Contents ──
+  function buildToc(key) {
+    const d = docs[key];
+    const panel = document.getElementById('toc-panel');
+    const container = document.getElementById(d.renderId);
+    const headings = container.querySelectorAll('h2, h3');
+
+    let html = '<div class="toc-heading">On This Page</div>';
+    headings.forEach(h => {
+      const level = h.tagName === 'H2' ? 'h2' : 'h3';
+      const text = h.textContent.trim();
+      const id = h.id;
+      html += `<div class="toc-item ${level}" onclick="scrollToHeading('${key}', '${id}')" data-text="${text.toLowerCase()}">${text}</div>`;
+    });
+    panel.innerHTML = html;
+  }
+
+  function scrollToHeading(key, id) {
+    const docEl = document.getElementById('doc-' + key);
+    const target = document.getElementById(id);
+    if (target) {
+      docEl.scrollTo({ top: target.offsetTop - 20, behavior: 'smooth' });
+    }
+  }
+
+  function filterToc(val) {
+    const term = val.toLowerCase();
+    document.querySelectorAll('.toc-item').forEach(el => {
+      const match = !term || el.dataset.text.includes(term);
+      el.style.display = match ? '' : 'none';
+    });
+  }
+
+  // ── Init ToC ──
+  buildToc('simple');
+</script>
+</body>
+</html>

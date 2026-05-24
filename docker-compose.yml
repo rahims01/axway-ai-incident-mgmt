@@ -1,0 +1,25 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Overrides anything in .env — safe defaults for local dev
+      - DATABASE_URL=sqlite:///./data/axway_aiops.db
+      - MOCK_AXWAY=true
+    volumes:
+      # Hot-reload: mount source so uvicorn --reload picks up changes
+      - .:/app
+      # Persist the SQLite DB outside the container
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
