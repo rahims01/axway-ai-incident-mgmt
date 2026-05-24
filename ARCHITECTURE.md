@@ -8,7 +8,7 @@
 
 ## 1. Executive Summary
 
-This document defines the architecture for an AI-native AIOps platform purpose-built for Axway SecureTransport Managed File Transfer (MFT) operations. The platform mirrors the capability philosophy of Nova AIOps — continuous telemetry ingestion, multi-agent AI reasoning, autonomous remediation, and conversational operations intelligence — adapted to the specific failure modes, protocols, and operational patterns of enterprise MFT.
+This document defines the architecture for an AI-native AIOps platform purpose-built for Axway SecureTransport Managed File Transfer (MFT) operations. The platform mirrors the capability philosophy of AIOps — continuous telemetry ingestion, multi-agent AI reasoning, autonomous remediation, and conversational operations intelligence — adapted to the specific failure modes, protocols, and operational patterns of enterprise MFT.
 
 Axway SecureTransport environments generate a dense, high-velocity stream of operational signals: SFTP handshake negotiations, AS2 MDN acknowledgements, TLS certificate validations, partner authentication events, transfer state transitions, and JVM health metrics. Today these signals are consumed reactively by support engineers who diagnose incidents manually from fragmented logs, often under SLA pressure. The result is high MTTR, repeated incidents, tribal knowledge dependency, and limited capacity to run proactive operations.
 
